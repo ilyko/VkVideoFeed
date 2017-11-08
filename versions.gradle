@@ -1,0 +1,11 @@
+ext {
+
+    supportLibraryVersion = '26.1.0'
+    dagger2Version = '2.11'
+    rxjavaVersion = '2.1.1'
+    rxandroidVersion = '2.0.1'
+    rxbinding = '2.0.0'
+    butterKnifeVersion = '8.6.0'
+    gsonVersion = '2.8.2'
+    glideVersion = '4.3.1'
+}
