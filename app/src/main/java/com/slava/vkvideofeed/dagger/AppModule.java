@@ -13,15 +13,13 @@ import dagger.Module;
 import dagger.Provides;
 
 @Module
-public class AppModule {
+class AppModule {
     @Provides
     @Singleton
     Context provideContext(Application app) {
         return app.getApplicationContext();
     }
 
-/*    @Provides
-    SchedulerProvider getSchedulerProvider(){return new AppRxSchedulers();}*/
 
     @Provides
     Gson provideGson() {

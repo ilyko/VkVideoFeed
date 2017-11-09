@@ -6,30 +6,30 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 
 import com.slava.vkvideofeed.R;
-import com.slava.vkvideofeed.model.VideoData;
-import com.slava.vkvideofeed.model.VideoInfo;
+import com.slava.vkvideofeed.model.getnewsfeed.NewsFeedData;
+import com.slava.vkvideofeed.model.getnewsfeed.NewsFeedInfo;
 import com.slava.vkvideofeed.ui.base.BaseActivity;
 import com.slava.vkvideofeed.ui.base.EndlessRecyclerOnScroll;
-import com.slava.vkvideofeed.ui.fullscreen.FullscreenActivity;
-import com.slava.vkvideofeed.util.LogUtil;
+import com.slava.vkvideofeed.ui.videoview.VideoViewActivity;
+import com.slava.vkvideofeed.ui.login.LoginActivity;
+import com.vk.sdk.VKSdk;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import butterknife.BindView;
 
-public class MainActivity extends BaseActivity implements MainMvp.View {
+public class MainActivity extends BaseActivity implements MainMvp.View, VideoRvAdapter.RecyclerViewClickListener {
     public static int LAYOUT = R.layout.activity_main;
 
     VideoRvAdapter videoRvAdapter;
     private int mLoadedItems = 0;
-    //private List<VideoData> videoData;
 
     @Inject
     MainPresenter presenter;
@@ -48,18 +48,21 @@ public class MainActivity extends BaseActivity implements MainMvp.View {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        //videoData = new ArrayList<>();
+        initRv();
         progressBar.setVisibility(View.VISIBLE);
-        videoRvAdapter = new VideoRvAdapter(presenter);
-        recyclerView.setAdapter(videoRvAdapter);
+        presenter.vkNewsFeedVideos(mLoadedItems);
 
-        presenter.vkGetVideosInfo(mLoadedItems);
+    }
+
+    void initRv() {
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        videoRvAdapter = new VideoRvAdapter(this);
+        recyclerView.setAdapter(videoRvAdapter);
         recyclerView.addOnScrollListener(new EndlessRecyclerOnScroll() {
             @Override
             public void onLoadMore() {
                 progressBar.setVisibility(View.VISIBLE);
-                presenter.vkGetVideosInfo(mLoadedItems);
+                presenter.vkNewsFeedVideos(mLoadedItems);
             }
         });
     }
@@ -71,18 +74,38 @@ public class MainActivity extends BaseActivity implements MainMvp.View {
     }
 
     @Override
-    public void handleVideoInfoResponse(VideoInfo videoInfo) {
-        LogUtil.info(this, videoInfo.toString());
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_logout: {
+                VKSdk.logout();
+                Intent intent = new Intent(this, LoginActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+                break;
+            }
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void handleNewsFeedResponse(NewsFeedInfo videoInfo) {
         videoRvAdapter.handleVideoInfoResponse(videoInfo);
-        LogUtil.info(this, "size:" + videoInfo.getResponse().getItems().size());
         mLoadedItems += videoInfo.getResponse().getItems().size();
         progressBar.setVisibility(View.GONE);
     }
 
     @Override
-    public void startFullScreenActivity(String url) {
-        Intent intent = new Intent(this, FullscreenActivity.class);
+    public void handleVideoResponse(String url) {
+        Intent intent = new Intent(this, VideoViewActivity.class);
         intent.putExtra(VIDEO_PATH, url);
         startActivity(intent);
+    }
+
+
+    @Override
+    public void recyclerViewListClicked(View v, int position) {
+        List<NewsFeedData> videoData = videoRvAdapter.getListFromAdapter();
+        presenter.vkVideoGet(videoData.get(position).getOwnerId(), videoData.get(position).getId());
     }
 }

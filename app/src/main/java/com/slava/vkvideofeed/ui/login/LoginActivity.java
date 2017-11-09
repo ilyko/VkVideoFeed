@@ -8,20 +8,16 @@ import android.widget.Button;
 import com.slava.vkvideofeed.R;
 import com.slava.vkvideofeed.ui.base.BaseActivity;
 import com.slava.vkvideofeed.ui.main.MainActivity;
-import com.slava.vkvideofeed.util.LogUtil;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKCallback;
 import com.vk.sdk.VKScope;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.api.VKError;
-import com.vk.sdk.api.VKRequest;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 
 public class LoginActivity extends BaseActivity implements LoginMvp.View {
 
-    private boolean isResumed = false;
 
     public static int LAYOUT = R.layout.activity_login;
 
@@ -39,36 +35,7 @@ public class LoginActivity extends BaseActivity implements LoginMvp.View {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ButterKnife.bind(this);
-
         authButton.setOnClickListener(v -> VKSdk.login(this, sMyScope));
-
-        VKSdk.wakeUpSession(this, new VKCallback<VKSdk.LoginState>() {
-            @Override
-            public void onResult(VKSdk.LoginState res) {
-                if (isResumed) {
-                    switch (res) {
-                        case LoggedOut:
-                            //showLogin();
-                            LogUtil.info(this, "Logout");
-                            break;
-                        case LoggedIn:
-                            //showLogout();
-                            LogUtil.info(this, "Login");
-                            break;
-                        case Pending:
-                            break;
-                        case Unknown:
-                            break;
-                    }
-                }
-            }
-
-            @Override
-            public void onError(VKError error) {
-
-            }
-        });
     }
 
     @Override
@@ -76,30 +43,23 @@ public class LoginActivity extends BaseActivity implements LoginMvp.View {
         VKCallback<VKAccessToken> callback = new VKCallback<VKAccessToken>() {
             @Override
             public void onResult(VKAccessToken res) {
-                // User passed Authorization
-                startMainActivity();
+                Intent intent = new Intent(LoginActivity.this,
+                        MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                        Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
             }
 
             @Override
             public void onError(VKError error) {
-                // User didn't pass Authorization
+
             }
         };
 
         if (!VKSdk.onActivityResult(requestCode, resultCode, data, callback)) {
             super.onActivityResult(requestCode, resultCode, data);
         }
-    }
-
-    private void startMainActivity() {
-
-        startActivity(new Intent(this, MainActivity.class));
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
     }
 
     @Override

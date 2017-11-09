@@ -8,10 +8,6 @@ import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import dagger.android.AndroidInjection;
 
-/**
- * Created by slava on 07.11.17.
- */
-
 public abstract class BaseActivity extends AppCompatActivity implements MvpView {
     private Unbinder mUnBinder;
 
@@ -30,10 +26,10 @@ public abstract class BaseActivity extends AppCompatActivity implements MvpView 
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         if (mUnBinder != null) {
             mUnBinder.unbind();
         }
-        super.onDestroy();
     }
 
     public abstract int getLayout();

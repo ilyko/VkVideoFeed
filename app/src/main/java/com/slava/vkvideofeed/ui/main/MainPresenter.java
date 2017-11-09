@@ -1,8 +1,9 @@
 package com.slava.vkvideofeed.ui.main;
 
 import com.google.gson.Gson;
-import com.slava.vkvideofeed.model.VideoInfo;
-import com.slava.vkvideofeed.util.LogUtil;
+
+import com.slava.vkvideofeed.model.getnewsfeed.NewsFeedInfo;
+import com.slava.vkvideofeed.model.getvideo.VideoInfo;
 import com.vk.sdk.api.VKApiConst;
 import com.vk.sdk.api.VKParameters;
 import com.vk.sdk.api.VKRequest;
@@ -18,31 +19,35 @@ public class MainPresenter implements MainMvp.Presenter {
     Gson gson;
 
     @Inject
-    public MainPresenter(MainMvp.View view) {
+    MainPresenter(MainMvp.View view) {
         this.view = view;
     }
 
     @Override
-    public void vkGetVideosInfo(int startFrom) {
-        LogUtil.info(this, "HERE 1");
+    public void vkNewsFeedVideos(int startFrom) {
         VKRequest request = new VKRequest("newsfeed.get",
                 VKParameters.from(VKApiConst.FILTERS, "video", "start_from", startFrom, "count", 10));
-        LogUtil.info(this, "start from: " + startFrom);
-        LogUtil.info(this, "HERE 2");
         request.executeWithListener(new VKRequest.VKRequestListener() {
             @Override
             public void onComplete(VKResponse response) {
                 super.onComplete(response);
-                LogUtil.info(this, response.json.toString());
-                VideoInfo videoInfo = gson.fromJson(String.valueOf(response.json), VideoInfo.class);
-                LogUtil.info(this, videoInfo.toString());
-                view.handleVideoInfoResponse(gson.fromJson(String.valueOf(response.json), VideoInfo.class));
+                view.handleNewsFeedResponse(gson.fromJson(String.valueOf(response.json),
+                        NewsFeedInfo.class));
             }
         });
     }
 
     @Override
-    public void getVideoPath(String url) {
-        view.startFullScreenActivity(url);
+    public void vkVideoGet(int idOwner, int idVideo) {
+        VKRequest request = new VKRequest("video.get",
+                VKParameters.from("videos", idOwner+"_"+idVideo));
+        request.executeWithListener(new VKRequest.VKRequestListener() {
+            @Override
+            public void onComplete(VKResponse response) {
+                super.onComplete(response);
+                VideoInfo videoInfo = gson.fromJson(String.valueOf(response.json), VideoInfo.class);
+                view.handleVideoResponse(videoInfo.getResponse().getItems().get(0).getPlayer());
+            }
+        });
     }
 }

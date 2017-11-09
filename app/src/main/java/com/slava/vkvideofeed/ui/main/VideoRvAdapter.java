@@ -1,19 +1,18 @@
 package com.slava.vkvideofeed.ui.main;
 
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.slava.vkvideofeed.R;
-import com.slava.vkvideofeed.model.Item;
-import com.slava.vkvideofeed.model.VideoData;
-import com.slava.vkvideofeed.model.VideoInfo;
-import com.slava.vkvideofeed.util.LogUtil;
+import com.slava.vkvideofeed.model.getnewsfeed.Item;
+import com.slava.vkvideofeed.model.getnewsfeed.NewsFeedData;
+import com.slava.vkvideofeed.model.getnewsfeed.NewsFeedInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,16 +23,15 @@ import butterknife.ButterKnife;
 
 public class VideoRvAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
-    private List<VideoData> videoInfos;
-    private MainMvp.Presenter presenter;
+    private List<NewsFeedData> videoInfos;
+    private RecyclerViewClickListener recyclerViewClickListener;
 
-    VideoRvAdapter(MainMvp.Presenter presenter) {
-        this.presenter = presenter;
+    VideoRvAdapter(RecyclerViewClickListener recyclerViewClickListener) {
+        this.recyclerViewClickListener = recyclerViewClickListener;
         this.videoInfos = new ArrayList<>();
-        LogUtil.info(this, "presenter:" + presenter + " this.presenter" + this.presenter);
     }
 
-    public void handleVideoInfoResponse(VideoInfo videoInfo) {
+    void handleVideoInfoResponse(NewsFeedInfo videoInfo) {
         for (int i = 0; i < videoInfo.getResponse().getItems().size(); i++) {
             Item item = videoInfo.getResponse().getItems().get(i);
             for (int j = 0; j < item.getVideo().getCount(); j++) {
@@ -43,14 +41,15 @@ public class VideoRvAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         notifyDataSetChanged();
     }
 
-
-/*    private enum TYPE {LOADING, EMPTY, ARTIST}*/
+    List<NewsFeedData> getListFromAdapter(){
+        return videoInfos;
+    }
 
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v;
-        RecyclerView.ViewHolder vh = null;
+        RecyclerView.ViewHolder vh;
         v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_video_info, parent, false);
         vh = new VideoInfoViewHolder(v);
@@ -68,28 +67,8 @@ public class VideoRvAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         return videoInfos.size();
     }
 
-    class EmptyViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.no_content)
-        TextView tvNoContent;
 
-        EmptyViewHolder(View itemView) {
-            super(itemView);
-            ButterKnife.bind(this, itemView);
-        }
-    }
-
-    class LoadingViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.progress)
-        ProgressBar progressBar;
-
-        LoadingViewHolder(View itemView) {
-            super(itemView);
-            ButterKnife.bind(this, itemView);
-        }
-    }
-
-
-    class VideoInfoViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    class VideoInfoViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         @BindView(R.id.tv_name)
         TextView tvName;
         @BindView(R.id.tv_length)
@@ -103,23 +82,25 @@ public class VideoRvAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             ButterKnife.bind(this, itemView);
         }
 
-        void setVideo(VideoData video) {
+        void setVideo(NewsFeedData video) {
             tvName.setText(video.getTitle());
-            tvLength.setText(video.getDuration().toString());
 
+            tvLength.setText(DateUtils.formatElapsedTime(video.getDuration()));
             tvName.requestLayout();
-            String path = null;
-            path = video.getPhoto130();
+            String path = video.getPhoto130();
             Glide.with(tvName.getContext())
                     .load(path)
                     .into(imageView);
         }
 
-
         @Override
-        public void onClick(View view) {
-            presenter.getVideoPath("https://google.com/");
+        public void onClick(View v) {
+            recyclerViewClickListener.recyclerViewListClicked(v,this.getLayoutPosition());
         }
+    }
+
+    public interface RecyclerViewClickListener {
+        void recyclerViewListClicked(View v, int position);
     }
 
 }

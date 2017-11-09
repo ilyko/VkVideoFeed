@@ -1,19 +1,12 @@
 package com.slava.vkvideofeed.ui.base;
 
 
-        import android.support.v7.widget.LinearLayoutManager;
-        import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 
 public abstract class EndlessRecyclerOnScroll extends RecyclerView.OnScrollListener {
-//    public static String TAG = EndlessRecyclerOnScrollListener.class.getSimpleName();
 
-    /**
-     * The total number of items in the dataset after the last load
-     */
     private int mPreviousTotal = 0;
-    /**
-     * True if we are still waiting for the last set of data to load.
-     */
     private boolean mLoading = true;
 
     @Override
@@ -33,7 +26,6 @@ public abstract class EndlessRecyclerOnScroll extends RecyclerView.OnScrollListe
         int visibleThreshold = 5;
         if (!mLoading && (totalItemCount - visibleItemCount)
                 <= (firstVisibleItem + visibleThreshold)) {
-            // End has been reached
 
             onLoadMore();
 

@@ -14,7 +14,6 @@ import dagger.android.support.AndroidSupportInjectionModule;
 @Component(
         modules = {
                 AndroidSupportInjectionModule.class,
-                VkModule.class,
                 AppModule.class,
                 AndroidBindingModule.class
         }
